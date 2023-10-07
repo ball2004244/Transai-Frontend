@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface Props {
   message: string;
@@ -9,19 +9,41 @@ interface Props {
 
 export function MessagesList() {
   // load conversation history from api
-  const [messages, setMessages] = useState([
-    {
-      message: "Hello world",
-      sender: "Me",
-    },
-    {
-      message: "How are you?",
-      sender: null,
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
+
+  // create an interval that overwrite the messages list with the list from api
+  // every 5 seconds
+  const retrieveMessages = async () => {
+    // call api to retrieve messages
+
+    const room_id = "651b95c6f11dcbfdec1cc59f";
+    const URL = "http://localhost:8080/chat/room/" + room_id;
+
+    const data = await fetch(URL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((response) => response.json());
+
+    return data;
+  };
+
+  useEffect(() => {
+    let timer = setInterval(async () => {
+      const response = await retrieveMessages();
+      const messages = response["data"].map((message: any) => ({
+        message: message["text"],
+        sender: message["user_id"],
+      }));
+
+      setMessages(messages);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <div className="chatroom flex flex-col items-center justify-start w-full h-[80vh] overflow-y-auto">
+    <div className="chatroom flex flex-col items-center justify-start w-full h-[70vh] overflow-y-auto">
       {messages.map((message, index) => (
         <MessageBubble
           key={index}
@@ -40,7 +62,7 @@ function MessageBubble({ message, sender }: Props) {
 
   const messageBubbleClass =
     "message-bubble flex items-center justify-center-400 rounded-lg p-2 m-2 " +
-    (sender ? "bg-blue-500" : "bg-gray-300");
+    (sender ? "bg-blue-500" : "bg-gray-700");
 
   return (
     <div className={messageContainerClass}>
@@ -61,7 +83,9 @@ function MessageBubble({ message, sender }: Props) {
 export function MessageInput() {
   const [message, setMessage] = useState("");
 
-  const sendMessage = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const sendMessage = async (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
     // only send when hit enter
     if (event.key !== "Enter") return;
 
@@ -69,12 +93,30 @@ export function MessageInput() {
 
     // add the message to the messages list
     // by sending new messsage to the api
+    const request = {
+      // create a mock user, where all _id are in HEX 12 bytes
+      user_id: "651b8b95f9e87b31b2b3a369",
+      room_id: "5f9d3b2c8d8b4a1b1c9d7e8f",
+      text: message,
+      language: "English",
+    };
+
+    const URL = "localhost:8080/chat";
+
+    // use fetch
+    await fetch(URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
 
     setMessage("");
   };
 
   return (
-    <div className="message-input flex flex-row items-center justify-center self-end w-full h-full border-t border-gray-800 h-[13vh]">
+    <div className="message-input flex flex-row items-center justify-center self-end w-full border-t border-gray-800 h-[20vh]">
       <textarea
         className="message-input-field flex-1 w-full h-full p-2 m-auto text-sm text-gray-700 outline-none resize-none"
         placeholder="Type a message..."
