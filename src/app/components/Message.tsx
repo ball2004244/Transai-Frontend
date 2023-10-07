@@ -2,14 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 
-interface Props {
-  message: string;
-  sender: string | null;
-}
-
 export function MessagesList() {
   // load conversation history from api
   const [messages, setMessages] = useState([]);
+  const user_id = "651b8b95f9e87b31b2b3a369";
 
   // create an interval that overwrite the messages list with the list from api
   // every 5 seconds
@@ -30,38 +26,53 @@ export function MessagesList() {
   };
 
   useEffect(() => {
-    let timer = setInterval(async () => {
+    const intervalId = setInterval(async () => {
       const response = await retrieveMessages();
       const messages = response["data"].map((message: any) => ({
-        message: message["text"],
-        sender: message["user_id"],
+        text: message["text"],
+        sender: message["user_id"] === user_id ? user_id : null,
       }));
 
       setMessages(messages);
     }, 5000);
-    return () => clearInterval(timer);
+
+    // Call retrieveMessages once after the component is mounted
+    retrieveMessages().then((response) => {
+      const messages = response["data"].map((message: any) => ({
+        text: message["text"],
+        sender: message["user_id"] === user_id ? user_id : null,
+      }));
+
+      setMessages(messages);
+    });
+
+    // Clear the interval when the component is unmounted
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
-    <div className="chatroom flex flex-col items-center justify-start w-full h-[70vh] overflow-y-auto">
+    <div className="messages-list items-center justify-start w-full h-[70vh] overflow-y-auto">
       {messages.map((message, index) => (
-        <MessageBubble
-          key={index}
-          message={message.message}
-          sender={message.sender}
-        />
+        <MessageBubble key={index} data={message} />
       ))}
     </div>
   );
 }
 
-function MessageBubble({ message, sender }: Props) {
+interface Message {
+  text: string;
+  sender: string | null;
+}
+
+function MessageBubble({ data }: { data: Message }) {
+  const { text, sender } = data;
+
   const messageContainerClass =
-    "message-container flex flex-row items-center justify-center max-w-1/3 max-h-1/3 overflow-hidden m-2 p-2 " +
-    (sender ? "ml-auto" : "mr-auto");
+    "message-container flex flex-row items-center max-w-1/3 max-h-1/3 overflow-hidden m-2 p-2 " +
+    (sender ? "justify-end" : "justify-start");
 
   const messageBubbleClass =
-    "message-bubble flex items-center justify-center-400 rounded-lg p-2 m-2 " +
+    "message-bubble flex items-center justify-center-400 rounded-lg p-2 m-2 max-w-[30vw] " +
     (sender ? "bg-blue-500" : "bg-gray-700");
 
   return (
@@ -70,7 +81,7 @@ function MessageBubble({ message, sender }: Props) {
         <div className="message-sender w-8 h-8 rounded-full bg-gray-400" />
       )}
       <div className={messageBubbleClass}>
-        <p className="message-content text-white break-all">{message}</p>
+        <p className="message-content text-white break-all">{text}</p>
       </div>
 
       {sender && (
@@ -91,20 +102,18 @@ export function MessageInput() {
 
     event.preventDefault();
 
-    // add the message to the messages list
-    // by sending new messsage to the api
     const request = {
-      // create a mock user, where all _id are in HEX 12 bytes
+      // create a mock user
       user_id: "651b8b95f9e87b31b2b3a369",
-      room_id: "5f9d3b2c8d8b4a1b1c9d7e8f",
+      room_id: "651b95c6f11dcbfdec1cc59f",
       text: message,
-      language: "English",
+      language: "en"
     };
 
-    const URL = "localhost:8080/chat";
+    const URL = "http://localhost:8080/chat";
 
     // use fetch
-    await fetch(URL, {
+    const response = await fetch(URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -112,6 +121,7 @@ export function MessageInput() {
       body: JSON.stringify(request),
     });
 
+    console.log(response);
     setMessage("");
   };
 
