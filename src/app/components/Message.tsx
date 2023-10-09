@@ -1,97 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef, use } from "react";
-
-function ErrBox({ message, onClose }: { message: string, onClose: () => void }) {
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      onClose();
-    }, 3000);
-    return () => clearTimeout(timeoutId);
-  }, [onClose]);
-
-  return (
-    <div className="err-box flex items-center justify-center w-1/4 h-[4vh] bg-red-500 absolute top-0 self-center m-4 p-2 rounded-md">
-      <p className="text-white text-center">{message}</p>
-    </div>
-  );
-}
-
-export function MessagesList() {
-  const [messages, setMessages] = useState([]);
-  let user_id = "";
-  const [error, setError] = useState("");
-  const messagesListRef = useRef<HTMLDivElement>(null); // create a ref to the messages list container
-
-  if (typeof window !== "undefined") 
-    user_id = localStorage.getItem("user_id") || "";
-  
-
-  // update the messages list every 5s
-  const retrieveMessages = async () => {
-
-    const room_id = localStorage.getItem("room_id") || "";
-    const URL = "http://localhost:8080/chat/room/" + room_id;
-
-    try {
-      const response = await fetch(URL, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await response.json();
-      const messages = data["data"].map((message: any) => ({
-        text: message["text"],
-        translated_text: message["translated_text"],
-        sender: message["user_id"] === user_id ? user_id : null,
-      }));
-
-      return messages;
-    } catch (error) {
-      setError("Cannot retrieve messages");
-      return [];
-    }
-  };
-
-  useEffect(() => {
-    const loadMessages = async () => {
-      try {
-        const messages = await retrieveMessages();
-        setMessages(messages);
-        setError("");
-      } catch (error) {
-        console.error(error);
-        setError("Cannot retrieve messages");
-      }
-    };
-
-    const intervalId = setInterval(loadMessages, 3000);
-
-    // Call retrieveMessages once after the component is mounted
-    loadMessages();
-
-    // Clear the interval when the component is unmounted
-    return () => clearInterval(intervalId);
-  }, []);
-
-  // scroll to the bottom of the messages list when a new message is added
-  useEffect(() => {
-    if (messagesListRef.current) {
-      messagesListRef.current.scrollTop = messagesListRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  return (
-    <div className="messages-list items-center justify-start w-full h-[70vh] overflow-y-auto" ref={messagesListRef}>
-      {error && <ErrBox message={error} onClose={() => setError("")} />}
-      {messages.map((message, index) => (
-        <MessageBubble key={index} data={message} />
-      ))}
-    </div>
-  );
-}
+import React, { useState, useEffect, useRef } from "react";
+import { API_URL } from "../api";
+import ErrBox from "./ErrBox";
 
 interface Message {
   text: string;
@@ -99,12 +10,30 @@ interface Message {
   sender: string | null;
 }
 
-function MessageBubble({ data }: { data: Message }) {
-  const { text, translated_text, sender } = data;
-  let user_id = "";
+interface UserData {
+  _id: string;
+  user_id: string;
+  account_id: string;
+  name: string;
+  language: string;
+}
 
-  if (typeof window !== "undefined") 
-    user_id = localStorage.getItem("user_id") || "";
+interface MessageBubbleProps {
+  data: Message;
+}
+
+function MessageBubble({ data }: MessageBubbleProps) {
+  const { text, translated_text, sender } = data;
+  const [user_id, setUser_id] = useState("");
+  const [showTranslated, setShowTranslated] = useState(true);
+  //TODO: Implement traslate text, where the user can see the original text when hover over the translated text
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const user_data = JSON.parse(localStorage.getItem("user_data") || "{}");
+      setUser_id(user_data["user_id"] || "");
+    }
+  }, []);
 
   const messageContainerClass =
     "message-container flex flex-row items-center max-w-1/3 max-h-1/3 overflow-hidden m-2 p-2 " +
@@ -120,7 +49,10 @@ function MessageBubble({ data }: { data: Message }) {
         <div className="message-sender w-8 h-8 rounded-full bg-gray-400" />
       )}
       <div className={messageBubbleClass}>
-        <p className="message-content text-white break-all">{sender !== user_id ? translated_text : text}</p>
+        <p className="message-content text-white break-all">
+          {sender !== user_id ? translated_text : text}
+        </p>
+
       </div>
 
       {sender && (
@@ -130,43 +62,141 @@ function MessageBubble({ data }: { data: Message }) {
   );
 }
 
+export function MessagesList() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [user_data, setUser_data] = useState<UserData>({
+    _id: "",
+    user_id: "",
+    account_id: "",
+    name: "",
+    language: "",
+  });
+
+  const [roomId, setRoomId] = useState("");
+  const [error, setError] = useState("");
+  const messagesListRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const user_data = JSON.parse(localStorage.getItem("user_data") || "{}");
+      if (user_data["user_id"]) setUser_data(user_data);
+
+      const room_data = JSON.parse(localStorage.getItem("room_data") || "{}");
+      if (room_data["room_id"]) setRoomId(room_data["room_id"]);
+    }
+  }, []);
+
+  const retrieveMessages = async () => {
+    const URL = API_URL + "/chat/room/" + roomId;
+
+    try {
+      const response = await fetch(URL, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+      const messages = data["data"].map((message: any) => ({
+        text: message["text"],
+        translated_text: message["translated_text"].trim(),
+        sender:
+          message["user_id"] === user_data.user_id ? user_data.user_id : null,
+      }));
+
+      return messages;
+    } catch (error) {
+      setError("Cannot retrieve messages");
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        const messages = await retrieveMessages();
+        setMessages(messages);
+        setError("");
+
+      } catch (error) {
+        console.error(error);
+        setError("Cannot retrieve messages");
+      }
+    };
+
+    if (!roomId) return;
+    const intervalId = setInterval(loadMessages, 3000);
+
+    loadMessages();
+
+    // Clear the interval when the component is unmounted
+    return () => clearInterval(intervalId);
+  }, [user_data, roomId]);
+
+  useEffect(() => {
+    if (messagesListRef.current) {
+      messagesListRef.current.scrollTop = messagesListRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  return (
+    <div
+      className="messages-list items-center justify-start w-full h-[70vh] overflow-y-auto"
+      ref={messagesListRef}
+    >
+      {error && <ErrBox message={error} onClose={() => setError("")} />}
+      {messages.map((message, index) => (
+        <MessageBubble key={index} data={message} />
+      ))}
+    </div>
+  );
+}
+
 export function MessageInput() {
   const [message, setMessage] = useState("");
   const [err, setErr] = useState("");
-  const messagesListRef = useRef<HTMLDivElement>(null); // create a ref to the messages list container
-  let user_id = "";
-  let room_id = "";
-  let language = "en";
+  const [user_id, setUser_id] = useState("");
+  const [room_id, setRoom_id] = useState("");
+  const [language, setLanguage] = useState("en");
 
-  if (typeof window !== "undefined") {
-    // get user_id from localStorage
-    user_id = localStorage.getItem("user_id") || "";
-    room_id = localStorage.getItem("room_id") || "";
-    language = localStorage.getItem("language") || "en";
-  }
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const user_data = JSON.parse(localStorage.getItem("user_data") || "{}");
+      const room_data = JSON.parse(localStorage.getItem("room_data") || "{}");
+      if (user_data["user_id"]) setUser_id(user_data["user_id"]);
+      if (user_data["language"]) setLanguage(user_data["language"]);
 
-  const verifyMessage = (message: string) => {
-    // strip message of whitespace
-    message = message.trim();
+      if (room_data["room_id"]) setRoom_id(room_data["room_id"]);
 
-    // check if message is too short
-    if (message.length < 1) {
-      // console.log("Message too short");
-      return false;
     }
+  }, []);
 
-    // check if message is too long
-    if (message.length > 500) {
-      // console.log("Message too long");
+  const verifyRoom = async () => {
+    if (!room_id) {
+      setErr("You are not in any room");
       return false;
     }
 
     return true;
   };
+
+  const verifyMessage = (message: string) => {
+    message = message.trim();
+
+    if (message.length < 1) {
+      return false;
+    }
+
+    if (message.length > 500) {
+      return false;
+    }
+
+    return true;
+  };
+
   const sendMessage = async (
     event: React.KeyboardEvent<HTMLTextAreaElement>
   ) => {
-    // only send when hit enter
     if (event.key !== "Enter") return;
 
     event.preventDefault();
@@ -178,12 +208,13 @@ export function MessageInput() {
       language: language,
     };
 
-    const URL = "http://localhost:8080/chat";
+    const URL = API_URL + "/chat";
 
     try {
+      if (!(await verifyRoom())) throw new Error("You are not in any room");
+
       if (!verifyMessage(message)) throw new Error("Invalid message");
 
-      // use fetch
       await fetch(URL, {
         method: "POST",
         headers: {
@@ -194,15 +225,14 @@ export function MessageInput() {
 
       setMessage("");
       setErr("");
-    } catch (error) {
-      console.log("Cannot send message");
+    } catch (error: any) {
       setMessage("");
-      setErr("Cannot send message");
+      setErr(error.toString());
     }
   };
 
   return (
-    <div className="message-input flex flex-row items-center justify-center self-end w-full border-t border-gray-800 h-[20vh]">
+    <div className="message-input flex flex-row items-center justify-center self-end w-full border-t border-gray-800 h-[20vh] select-none">
       {err && <ErrBox message={err} onClose={() => setErr("")} />}
       <textarea
         className="message-input-field flex-1 w-full h-full p-2 m-auto text-sm text-gray-700 outline-none resize-none"
