@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { LANGUAGES } from "@/app/utils";
 
 function LanguageButton({
   language,
@@ -54,108 +55,41 @@ function LanguageList({
   );
 }
 
-interface UserData {
-  _id: string;
-  user_id: string;
-  account_id: string;
-  name: string;
-  language: string;
+function LogOutPopup({
+  setDisplayLogOutPopup,
+}: {
+  setDisplayLogOutPopup: (state: boolean) => void;
+}) {
+  return (
+    <div className="logout-popup flex flex-col items-center justify-center w-screen h-screen absolute top-0 left-0 bg-gray-800">
+      <button
+        className="logout-btn text-white font-bold text-lg bg-gray-700 rounded-lg p-2 m-2 w-[20vw] max-w-[22vw]"
+        onClick={() => {
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("user_data");
+            window.location.reload();
+          }
+        }}
+      >
+        Log Out
+      </button>
+      <button
+        className="cancel-btn text-white font-bold text-lg bg-gray-700 rounded-lg p-2 m-2 w-[20vw] max-w-[22vw]"
+        onClick={() => setDisplayLogOutPopup(false)}
+      >
+        Go Back
+      </button>
+    </div>
+  );
 }
 
 export function Header() {
-  const LANGUAGES: { [key: string]: string } = {
-    en: "English",
-    fr: "French",
-    de: "German",
-    es: "Spanish",
-    ru: "Russian",
-    zh: "Chinese",
-    ja: "Japanese",
-    hi: "Hindi",
-    ar: "Arabic",
-    pt: "Portuguese",
-    pa: "Punjabi",
-    mr: "Marathi",
-    ta: "Tamil",
-    te: "Telugu",
-    ur: "Urdu",
-    vi: "Vietnamese",
-    ko: "Korean",
-    jv: "Javanese",
-    ms: "Malay",
-    tl: "Tagalog",
-    id: "Indonesian",
-    tr: "Turkish",
-    it: "Italian",
-    nl: "Dutch",
-    pl: "Polish",
-    sr: "Serbian",
-    uk: "Ukrainian",
-    cs: "Czech",
-    ro: "Romanian",
-    bg: "Bulgarian",
-    hu: "Hungarian",
-    sv: "Swedish",
-    sk: "Slovak",
-    hr: "Croatian",
-    da: "Danish",
-    fi: "Finnish",
-    no: "Norwegian",
-    el: "Greek",
-    ml: "Malayalam",
-    th: "Thai",
-    so: "Somali",
-    fil: "Filipino",
-    he: "Hebrew",
-    yi: "Yiddish",
-    hy: "Armenian",
-    az: "Azerbaijani",
-    eu: "Basque",
-    be: "Belarusian",
-    bn: "Bengali",
-    ka: "Georgian",
-    gu: "Gujarati",
-    kk: "Kazakh",
-    am: "Amharic",
-    km: "Khmer",
-    kn: "Kannada",
-    lo: "Lao",
-    la: "Latin",
-    lv: "Latvian",
-    lt: "Lithuanian",
-    mg: "Malagasy",
-    mt: "Maltese",
-    mi: "Maori",
-    mk: "Macedonian",
-    mn: "Mongolian",
-    my: "Burmese",
-    ne: "Nepali",
-    or: "Odia",
-    ps: "Pashto",
-    fa: "Persian",
-    sq: "Albanian",
-    si: "Sinhala",
-    sd: "Sindhi",
-    su: "Sundanese",
-    sw: "Swahili",
-    tg: "Tajik",
-    tt: "Tatar",
-    bo: "Tibetan",
-    to: "Tonga",
-    tk: "Turkmen",
-    ug: "Uyghur",
-    uz: "Uzbek",
-    cy: "Welsh",
-    fy: "Frisian",
-    wo: "Wolof",
-    ha: "Hausa",
-    yo: "Yoruba",
-    zu: "Zulu",
-  };
+  
 
   const [language, setLanguage] = useState("English"); // default language is "English
   const [name, setName] = useState("Guest");
   const [selectLangState, setSelectLangState] = useState(false);
+  const [displayLogOutPopup, setDisplayLogOutPopup] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -168,12 +102,18 @@ export function Header() {
 
   return (
     <div className="flex flex-row justify-between items-center px-4 py-2 bg-gray-800 w-full">
-      <div className="user-div flex flex-row items-center justify-center">
+      <button
+        className="user-div flex flex-row items-center justify-center"
+        onClick={() => setDisplayLogOutPopup(!displayLogOutPopup)}
+      >
         <div className="user-img rounded-full w-10 h-10 bg-gray-500" />
         <div className="user-name ml-2 text-white font-bold text-lg">
           {name}
         </div>
-      </div>
+      </button>
+      {displayLogOutPopup && (
+        <LogOutPopup setDisplayLogOutPopup={setDisplayLogOutPopup} />
+      )}
       <div className="language-div flex flex-row items-center justify-center">
         <button
           className="language-text text-white"

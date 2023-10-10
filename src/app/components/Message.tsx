@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { API_URL } from "../api";
+import { getRoomMessages, sendMessageToRoom } from "@/app/apis";
 import ErrBox from "./ErrBox";
 
 interface Message {
@@ -25,8 +25,7 @@ interface MessageBubbleProps {
 function MessageBubble({ data }: MessageBubbleProps) {
   const { text, translated_text, sender } = data;
   const [user_id, setUser_id] = useState("");
-  const [showTranslated, setShowTranslated] = useState(true);
-  //TODO: Implement traslate text, where the user can see the original text when hover over the translated text
+  const [showTranslated, setShowTranslated] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -40,24 +39,42 @@ function MessageBubble({ data }: MessageBubbleProps) {
     (sender ? "justify-end" : "justify-start");
 
   const messageBubbleClass =
-    "message-bubble flex items-center justify-center-400 rounded-lg p-2 m-2 max-w-[30vw] " +
+    "message-bubble flex flex-col items-start justify-center-400 rounded-lg p-2 m-2 max-w-[30vw] " +
     (sender ? "bg-blue-500" : "bg-gray-700");
 
   return (
     <div className={messageContainerClass}>
-      {!sender && (
-        <div className="message-sender w-8 h-8 rounded-full bg-gray-400" />
-      )}
-      <div className={messageBubbleClass}>
-        <p className="message-content text-white break-all">
-          {sender !== user_id ? translated_text : text}
-        </p>
+      <div className="message-col flex flex-col items-start justify-center-400 rounded-lg max-w-[30vw]">
+        <div className="sender-name-container flex flex-row items-center justify-center">
+          {sender !== user_id && (
+            <h1 className="sender-name text-gray-800 text-lg font-bold break-all mx-10 my-0">
+              Anonymous
+            </h1>
+          )}
+        </div>
+        <div className="flex flex-row items-center justify-center">
+          {!sender && (
+            <div className="message-sender w-8 h-8 rounded-full bg-gray-400" />
+          )}
+          <div
+            className={messageBubbleClass}
+            onClick={() => setShowTranslated(!showTranslated)}
+          >
+            <p className="message-content text-white break-all flex text-lg text-left">
+              {sender !== user_id ? translated_text : text}
+            </p>
 
+            {showTranslated && (
+              <p className="message-content text-white break-all flex italic text-left">
+                {sender === user_id ? translated_text : text}
+              </p>
+            )}
+          </div>
+          {sender && (
+            <div className="message-sender w-8 h-8 rounded-full bg-gray-400" />
+          )}
+        </div>
       </div>
-
-      {sender && (
-        <div className="message-sender w-8 h-8 rounded-full bg-gray-400" />
-      )}
     </div>
   );
 }
@@ -86,18 +103,14 @@ export function MessagesList() {
   }, []);
 
   const retrieveMessages = async () => {
-    const URL = API_URL + "/chat/room/" + roomId;
-
     try {
-      const response = await fetch(URL, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const getRoomMessagesResponse = await getRoomMessages(roomId);
+      if (getRoomMessagesResponse.status !== "success") {
+        setError(getRoomMessagesResponse.message);
+        return [];
+      }
 
-      const data = await response.json();
-      const messages = data["data"].map((message: any) => ({
+      const messages = getRoomMessagesResponse.data.map((message: any) => ({
         text: message["text"],
         translated_text: message["translated_text"].trim(),
         sender:
@@ -117,7 +130,6 @@ export function MessagesList() {
         const messages = await retrieveMessages();
         setMessages(messages);
         setError("");
-
       } catch (error) {
         console.error(error);
         setError("Cannot retrieve messages");
@@ -167,7 +179,6 @@ export function MessageInput() {
       if (user_data["language"]) setLanguage(user_data["language"]);
 
       if (room_data["room_id"]) setRoom_id(room_data["room_id"]);
-
     }
   }, []);
 
@@ -208,20 +219,19 @@ export function MessageInput() {
       language: language,
     };
 
-    const URL = API_URL + "/chat";
-
     try {
       if (!(await verifyRoom())) throw new Error("You are not in any room");
 
       if (!verifyMessage(message)) throw new Error("Invalid message");
 
-      await fetch(URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(request),
-      });
+      const response = await sendMessageToRoom(
+        room_id,
+        user_id,
+        message,
+        language
+      );
+
+      if (response.status !== "success") throw new Error(response.message);
 
       setMessage("");
       setErr("");

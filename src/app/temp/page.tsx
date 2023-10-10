@@ -16,5 +16,5 @@ export default function Temp() {
     }
   }, []);
 
-  <div className="temp-div flex flex-col items-center justify-center w-full h-full" />;
+  <div className="temp-div absolute z-20 flex flex-col items-center justify-center w-screen h-screen bg-gray-800 p-2 m-0" />;
 }
