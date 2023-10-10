@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { API_URL } from "../../api";
+import { loginToApp } from "@/app/apis";
 import { useRouter } from "next/navigation";
+import ErrBox from "@/app/components/ErrBox";
 
 export default function LoginUI() {
   return (
@@ -17,45 +18,38 @@ export default function LoginUI() {
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  
+  const [err, setErr] = useState("");
+
   const router = useRouter();
-  const URL = API_URL + "/auth/login";
 
   const login = async (username: string, password: string) => {
-    // call api to login
-    const request = await fetch(URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        password,
-      }),
-    });
+    try {
+      // call api to login
+      const loginResponse = await loginToApp(username, password);
 
-    const response = await request.json();
+      if (loginResponse.status !== "success") {
+        setErr(loginResponse.message);
+        return;
+      }
 
-    if (response["status"] === "success") {
-      localStorage.setItem("user_data", JSON.stringify(response.data));
+      const data = loginResponse.data;
+      localStorage.setItem("user_data", JSON.stringify(data));
       router.push("/");
+    } catch (err) {
+      setErr("Something went wrong");
     }
-
-    console.log("login failed");
   };
 
   useEffect(() => {
-    // check if user_data exists in local storage
-    // if exists, redirect to home page
     if (typeof window !== "undefined") {
       const user_data = JSON.parse(localStorage.getItem("user_data") || "{}");
       if (user_data["user_id"]) router.push("/");
     }
-  }
-  , []);
+  }, []);
 
   return (
     <div className="login-div flex flex-col items-center justify-center w-full h-full">
+      {err && <ErrBox message={err} onClose={() => setErr("")} />}
       <h1 className="login-title text-2xl lg:text-4xl text-center font-bold text-gray-800">
         Login to chat
       </h1>

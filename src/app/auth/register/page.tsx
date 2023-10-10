@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { API_URL } from "../../api";
+import { registerToApp } from "@/app/apis";
+import { LANGUAGES } from "@/app/utils";
 
 export default function RegisterUI() {
   return (
@@ -13,7 +14,7 @@ export default function RegisterUI() {
   );
 }
 
-function Register({}: {}) {
+function Register() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -22,10 +23,14 @@ function Register({}: {}) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [language, setLanguage] = useState("");
 
-  const URL = `${API_URL}/auth/register`;
-
-  const verifyInput = () => {
-    // verify input
+  const verifyInput = (
+    username: string,
+    password: string,
+    confirmPassword: string,
+    fullName: string,
+    phoneNumber: string,
+    language: string
+  ) => {
     if (username === "") {
       console.log("username is empty");
       return false;
@@ -74,34 +79,33 @@ function Register({}: {}) {
     language: string;
   }) => {
     // call api to register
-    if (!verifyInput()) {
+    if (
+      !verifyInput(
+        username,
+        password,
+        confirmPassword,
+        fullName,
+        phoneNumber,
+        language
+      )
+    )
       return;
-    }
 
-    const data = {
+    const registerResponse = await registerToApp(
       username,
       password,
-      name: fullName,
-      phone_number: phoneNumber,
-      language,
-    };
+      fullName,
+      phoneNumber,
+      language
+    );
 
-    const request = await fetch(URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    const response = await request.json();
-
-    // if success, set isLogin to true
-    if (response.status === "success") {
-      console.log("register success");
-      router.push("/auth/login");
+    if (registerResponse.status !== "success") {
+      console.log("register failed");
       return;
     }
+
+    console.log("register success");
+    router.push("/auth/login");
   };
 
   return (
@@ -110,50 +114,55 @@ function Register({}: {}) {
         Register your account
       </h1>
       <input
-        className="username text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4"
+        className="username text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
         placeholder="username"
         type="text"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
       />
       <input
-        className="username text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4"
+        className="password text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
         placeholder="password"
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
       <input
-        className="username text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4"
+        className="confirm-password text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
         placeholder="confirm password"
         type="password"
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
       />
       <input
-        className="username text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4"
+        className="full-name text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
         placeholder="Full name"
         type="text"
         value={fullName}
         onChange={(e) => setFullName(e.target.value)}
       />
       <input
-        className="username text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4"
+        className="phone text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
         placeholder="Phone number"
         type="text"
         value={phoneNumber}
         onChange={(e) => setPhoneNumber(e.target.value)}
       />
-      <input
-        className="username text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4"
-        placeholder="Language"
-        type="text"
+      <select
+        className="language text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
         value={language}
         onChange={(e) => setLanguage(e.target.value)}
-      />
+      >
+        <option value="" disabled>
+          Select language
+        </option>
+        {Object.keys(LANGUAGES).map((key) => (
+          <option key={key} value={key}>{LANGUAGES[key]}</option>
+        ))}
+      </select>
 
       <button
-        className="auth-button text-white font-bold text-lg bg-gray-700 rounded-lg p-2 m-2 w-3/4"
+        className="auth-button text-white font-bold text-lg bg-gray-700 rounded-lg p-2 m-2 w-3/4 outline-none"
         onClick={() =>
           register({
             username,
@@ -168,7 +177,7 @@ function Register({}: {}) {
         Register
       </button>
       <button
-        className="auth-button text-white font-bold text-lg bg-gray-700 rounded-lg p-2 m-2 w-3/4"
+        className="auth-button text-white font-bold text-lg bg-gray-700 rounded-lg p-2 m-2 w-3/4 outline-none"
         onClick={() => router.push("/auth/login")}
       >
         {" "}
