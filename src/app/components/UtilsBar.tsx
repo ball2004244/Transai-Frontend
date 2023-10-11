@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ErrBox from "./ErrBox";
-import { getRoomData, joinRoom, leaveRoom, createRoom } from "@/app/apis";
+import { getRoomData, joinRoom, leaveRoom, createRoom, FRONTEND_URL } from "@/app/apis";
 
 function QRCodeUI({
   roomID,
@@ -12,7 +12,7 @@ function QRCodeUI({
   onClose: () => void;
 }) {
   const QrGenURL = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=`;
-  const userAccessURL = `http://localhost:3000/room?room_id=${roomID}`;
+  const userAccessURL = `${FRONTEND_URL}/room?room_id=${roomID}`;
 
   const AccessibleQrURL = `${QrGenURL}${userAccessURL}`;
 

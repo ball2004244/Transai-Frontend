@@ -1,4 +1,7 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL;
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+export const FRONTEND_URL =
+  process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
 
 export const getRoomData = async (room_id: string) => {
   try {
@@ -167,7 +170,13 @@ export const loginToApp = async (username: string, password: string) => {
   }
 };
 
-export const registerToApp = async (username: string, password: string, name: string, phone: string, language: string) => {
+export const registerToApp = async (
+  username: string,
+  password: string,
+  name: string,
+  phone: string,
+  language: string
+) => {
   try {
     const URL = `${API_URL}/auth/register`;
 
