@@ -1,0 +1,8 @@
+# Spacefile Docs: https://go.deta.dev/docs/spacefile/v0
+v: 0
+micros:
+  - name: translai-frontend
+    src: .
+    engine: next
+    primary: true
+    dev: yarn dev
