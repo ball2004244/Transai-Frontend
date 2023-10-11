@@ -6,3 +6,8 @@ micros:
     engine: next
     primary: true
     dev: yarn dev
+    presets:
+      env:
+        - name: NEXT_PUBLIC_API_URL
+          description: Backend API URL
+          default: "http://172.172.203.41"
