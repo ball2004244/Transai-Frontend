@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { LANGUAGES } from "@/app/utils";
+import { leaveRoom } from "@/app/apis";
 
 function LanguageButton({
   language,
@@ -60,13 +61,40 @@ function LogOutPopup({
 }: {
   setDisplayLogOutPopup: (state: boolean) => void;
 }) {
+  const logOutAPI = async (user_id: string, room_id: string) => {
+    try {
+      const response = await leaveRoom(user_id, room_id);
+      if (response.status !== "success") {
+        console.log("Something went wrong");
+        return;
+      }
+      console.log("Successfully left the room");
+    } catch (err) {
+      console.log("Something went wrong");
+    }
+  };
+
   return (
     <div className="logout-popup flex flex-col items-center justify-center w-screen h-screen absolute top-0 left-0 bg-gray-800">
       <button
         className="logout-btn text-white font-bold text-lg bg-gray-700 rounded-lg p-2 m-2 w-[20vw] max-w-[22vw]"
-        onClick={() => {
+        onClick={async () => {
           if (typeof window !== "undefined") {
-            localStorage.removeItem("user_data");
+            const user_data = JSON.parse(
+              localStorage.getItem("user_data") || "{}"
+            );
+
+            const room_data = JSON.parse(
+              localStorage.getItem("room_data") || "{}"
+            );
+
+            const user_id = user_data["user_id"];
+            const room_id = room_data["room_id"];
+
+            await logOutAPI(user_id, room_id);
+            if (user_data) localStorage.removeItem("user_data");
+            if (room_data) localStorage.removeItem("room_data");
+
             window.location.reload();
           }
         }}
@@ -84,8 +112,6 @@ function LogOutPopup({
 }
 
 export function Header() {
-  
-
   const [language, setLanguage] = useState("English"); // default language is "English
   const [name, setName] = useState("Guest");
   const [selectLangState, setSelectLangState] = useState(false);

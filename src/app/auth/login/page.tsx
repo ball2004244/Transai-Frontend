@@ -31,7 +31,7 @@ function Login() {
         setErr(loginResponse.message);
         return;
       }
-
+      
       const data = loginResponse.data;
       localStorage.setItem("user_data", JSON.stringify(data));
       router.push("/");
