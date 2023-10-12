@@ -2,7 +2,13 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ErrBox from "./ErrBox";
-import { getRoomData, joinRoom, leaveRoom, createRoom, FRONTEND_URL } from "@/app/apis";
+import {
+  getRoomData,
+  joinRoom,
+  leaveRoom,
+  createRoom,
+  FRONTEND_URL,
+} from "@/app/apis";
 
 function QRCodeUI({
   roomID,
@@ -265,6 +271,28 @@ export function UtilsBar() {
       }
     }
   }, []);
+
+  // create a roomLoop that update local storage every 3s
+  useEffect(() => {
+    if (isInRoom) {
+      const roomLoop = setInterval(async () => {
+        const room_data = JSON.parse(localStorage.getItem("room_data") || "{}");
+
+        if (room_data["room_id"]) {
+          const room_response = await getRoomData(room_data["room_id"]);
+
+          if (room_response.status !== "success") {
+            return;
+          }
+
+          const new_room_data = room_response.data;
+          localStorage.setItem("room_data", JSON.stringify(new_room_data));
+        }
+      }, 3000);
+
+      return () => clearInterval(roomLoop);
+    }
+  }, [isInRoom]);
 
   return (
     <div className="utils-bar flex flex-row items-center justify-center w-full bg-gray-700 min-h-[3vh] max-h-[5vh] p-2">
