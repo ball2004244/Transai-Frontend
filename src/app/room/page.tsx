@@ -14,18 +14,22 @@ export default function Room() {
 
 
     if (roomRequest.status !== "success") {
-        router.push("/temp");
+        router.push("/");
         return;
     }
 
     const roomData = roomRequest.data;
 
+    // delete old room data
+    localStorage.removeItem("room_data");
+
+    // add new room data
     localStorage.setItem("room_data", JSON.stringify(roomData));
   };
 
   useEffect(() => {
     if (!room_id) {
-      router.push("/temp");
+      router.push("/");
       return;
     }
 
