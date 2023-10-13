@@ -53,7 +53,15 @@ function InRoomBar({ onExit }: { onExit: () => void }) {
         className={UtilsBarButtonClass}
         onClick={() => setShowQRCode(true)}
       >
-        Room ID: {roomID}
+        <p>
+          Room ID:{" "}
+          <span className="hidden lg:inline">
+            {roomID}
+            </span>
+          <span className="inline lg:hidden">
+            {roomID.slice(0, 10)}...
+          </span>
+        </p>
       </button>
       <button className={UtilsBarButtonClass} onClick={handleExitClick}>
         Exit
