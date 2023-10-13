@@ -170,6 +170,7 @@ export function MessageInput() {
   const [user_id, setUser_id] = useState("");
   const [room_id, setRoom_id] = useState("");
   const [language, setLanguage] = useState("en");
+  const [numParticipants, setNumParticipants] = useState(1);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -179,12 +180,18 @@ export function MessageInput() {
       if (user_data["language"]) setLanguage(user_data["language"]);
 
       if (room_data["room_id"]) setRoom_id(room_data["room_id"]);
+      if (room_data["participants"]) setNumParticipants(room_data["participants"].length);
     }
   }, []);
 
   const verifyRoom = async () => {
     if (!room_id) {
       setErr("You are not in any room");
+      return false;
+    }
+
+    if (numParticipants < 2) {
+      setErr("Not enough people in the room");
       return false;
     }
 
@@ -211,13 +218,6 @@ export function MessageInput() {
     if (event.key !== "Enter") return;
 
     event.preventDefault();
-
-    const request = {
-      user_id: user_id,
-      room_id: room_id,
-      text: message,
-      language: language,
-    };
 
     try {
       if (!(await verifyRoom())) throw new Error("You are not in any room");
