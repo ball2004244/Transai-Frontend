@@ -11,8 +11,7 @@ export default function Room() {
   let user_data: any = {};
 
   const addRoomDataToLocalStorage = async (user_id: string, room_id: string) => {
-    const roomRequest = await joinRoom(user_id, room_id);
-
+    const roomRequest = await joinRoom(room_id, user_id);
 
     if (roomRequest.status !== "success") {
         router.push("/");
