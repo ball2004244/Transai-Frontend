@@ -3,11 +3,12 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { registerToApp } from "@/app/apis";
 import { LANGUAGES } from "@/app/utils";
+import { authUIClass, authButtonClass, authTitleClass, inputFieldClass } from "../styles";
 
 export default function RegisterUI() {
   return (
     <div className="auth-div absolute z-20 flex flex-col items-center justify-center w-screen h-screen bg-gray-800 p-2 m-0">
-      <div className="auth-content flex flex-col items-center justify-center w-[30vw] min-h-[40vh] max-h-[60vh] bg-white rounded-lg p-4 m-2">
+      <div className={authUIClass}>
         <Register />
       </div>
     </div>
@@ -110,46 +111,44 @@ function Register() {
 
   return (
     <div className="register-div flex flex-col items-center justify-center w-full h-full">
-      <h1 className="register-title text-2xl lg:text-4xl text-center font-bold text-gray-800">
-        Register your account
-      </h1>
+      <h1 className={authTitleClass}>Register your account</h1>
       <input
-        className="username text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
+        className={inputFieldClass}
         placeholder="username"
         type="text"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
       />
       <input
-        className="password text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
+        className={inputFieldClass}
         placeholder="password"
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
       <input
-        className="confirm-password text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
+        className={inputFieldClass}
         placeholder="confirm password"
         type="password"
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
       />
       <input
-        className="full-name text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
+        className={inputFieldClass}
         placeholder="Full name"
         type="text"
         value={fullName}
         onChange={(e) => setFullName(e.target.value)}
       />
       <input
-        className="phone text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
+        className={inputFieldClass}
         placeholder="Phone number"
         type="text"
         value={phoneNumber}
         onChange={(e) => setPhoneNumber(e.target.value)}
       />
       <select
-        className="language text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4 outline-none"
+        className={inputFieldClass}
         value={language}
         onChange={(e) => setLanguage(e.target.value)}
       >
@@ -157,12 +156,14 @@ function Register() {
           Select language
         </option>
         {Object.keys(LANGUAGES).map((key) => (
-          <option key={key} value={key}>{LANGUAGES[key]}</option>
+          <option key={key} value={key}>
+            {LANGUAGES[key]}
+          </option>
         ))}
       </select>
 
       <button
-        className="auth-button text-white font-bold text-lg bg-gray-700 rounded-lg p-2 m-2 w-3/4 outline-none"
+        className={authButtonClass}
         onClick={() =>
           register({
             username,
@@ -177,10 +178,9 @@ function Register() {
         Register
       </button>
       <button
-        className="auth-button text-white font-bold text-lg bg-gray-700 rounded-lg p-2 m-2 w-3/4 outline-none"
+        className={authButtonClass}
         onClick={() => router.push("/auth/login")}
       >
-        {" "}
         Go Back
       </button>
     </div>

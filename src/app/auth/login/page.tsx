@@ -4,11 +4,12 @@ import React, { useState, useEffect } from "react";
 import { loginToApp } from "@/app/apis";
 import { useRouter } from "next/navigation";
 import ErrBox from "@/app/components/ErrBox";
+import { authUIClass, authButtonClass, inputFieldClass, authTitleClass } from "../styles";
 
 export default function LoginUI() {
   return (
     <div className="auth-div absolute z-20 flex flex-col items-center justify-center w-screen h-screen bg-gray-800 p-2 m-0">
-      <div className="auth-content flex flex-col items-center justify-center w-[30vw] min-h-[40vh] max-h-[60vh] bg-white rounded-lg p-4 m-2">
+      <div className={authUIClass}>
         <Login />
       </div>
     </div>
@@ -50,30 +51,30 @@ function Login() {
   return (
     <div className="login-div flex flex-col items-center justify-center w-full h-full">
       {err && <ErrBox message={err} onClose={() => setErr("")} />}
-      <h1 className="login-title text-2xl lg:text-4xl text-center font-bold text-gray-800">
+      <h1 className={authTitleClass}>
         Login to chat
       </h1>
       <input
-        className="username text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4"
+        className={inputFieldClass}
         placeholder="username"
         type="text"
         onChange={(e) => setUsername(e.target.value)}
       />
       <input
-        className="username text-sm text-gray-800 bg-gray-200 rounded-lg p-2 m-2 w-3/4"
+        className={inputFieldClass}
         placeholder="password"
         type="password"
         onChange={(e) => setPassword(e.target.value)}
       />
 
       <button
-        className="auth-button text-white font-bold text-lg bg-gray-700 rounded-lg p-2 m-2 w-3/4"
+        className={authButtonClass}
         onClick={() => login(username, password)}
       >
         Login
       </button>
       <button
-        className="auth-button text-white font-bold text-lg bg-gray-700 rounded-lg p-2 m-2 w-3/4"
+        className={authButtonClass}
         onClick={() => router.push("/auth/register")}
       >
         Register
