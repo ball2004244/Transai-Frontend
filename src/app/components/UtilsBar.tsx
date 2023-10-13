@@ -64,6 +64,7 @@ function InRoomBar({ onExit }: { onExit: () => void }) {
 
       //   remove room data from local storage
       localStorage.removeItem("room_data");
+      localStorage.removeItem("refresh");
       onExit();
       router.push("/temp");
     } catch (err) {
@@ -285,8 +286,17 @@ export function UtilsBar() {
             return;
           }
 
+          // only update local storage if participant list is different
           const new_room_data = room_response.data;
+
+          if (
+            JSON.stringify(room_data["participants"]) ===
+            JSON.stringify(new_room_data["participants"])
+          )
+            return;
+
           localStorage.setItem("room_data", JSON.stringify(new_room_data));
+          window.location.reload();
         }
       }, 3000);
 

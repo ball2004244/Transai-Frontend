@@ -220,7 +220,7 @@ export function MessageInput() {
     event.preventDefault();
 
     try {
-      if (!(await verifyRoom())) throw new Error("You are not in any room");
+      if (!(await verifyRoom())) return;
 
       if (!verifyMessage(message)) throw new Error("Invalid message");
 
