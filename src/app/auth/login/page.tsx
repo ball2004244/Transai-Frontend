@@ -56,13 +56,13 @@ function Login() {
       </h1>
       <input
         className={inputFieldClass}
-        placeholder="username"
+        placeholder="Username"
         type="text"
         onChange={(e) => setUsername(e.target.value)}
       />
       <input
         className={inputFieldClass}
-        placeholder="password"
+        placeholder="Password"
         type="password"
         onChange={(e) => setPassword(e.target.value)}
       />

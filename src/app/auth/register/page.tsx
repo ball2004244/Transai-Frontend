@@ -114,21 +114,21 @@ function Register() {
       <h1 className={authTitleClass}>Register your account</h1>
       <input
         className={inputFieldClass}
-        placeholder="username"
+        placeholder="Username"
         type="text"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
       />
       <input
         className={inputFieldClass}
-        placeholder="password"
+        placeholder="Password"
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
       <input
         className={inputFieldClass}
-        placeholder="confirm password"
+        placeholder="Confirm password"
         type="password"
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
